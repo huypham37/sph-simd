@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cmath>
 #include "SPHSimulation.hpp"
 #include "SPHConfig.hpp"
 

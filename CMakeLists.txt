@@ -55,21 +55,31 @@ add_executable(sph_simulation ${SOURCES})
 target_include_directories(sph_simulation PRIVATE include)
 
 # Add SIMD optimization flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    # Enable SIMD vectorization and OpenMP SIMD
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Clang-specific optimization flags
     target_compile_options(sph_simulation PRIVATE 
         -march=native          # Use all available CPU instructions
         -mtune=native          # Optimize for current CPU
         -ffast-math            # Enable fast math optimizations
         -funroll-loops         # Unroll loops for vectorization
         -fvectorize            # Enable auto-vectorization (Clang)
-        -ftree-vectorize       # Enable auto-vectorization (GCC)
+        -ftree-vectorize       # Enable auto-vectorization
     )
     
     # Add SIMD-specific flags for Apple Silicon (M1/M2)
     if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
         target_compile_options(sph_simulation PRIVATE -mcpu=apple-m1)
     endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # GCC-specific optimization flags
+    target_compile_options(sph_simulation PRIVATE 
+        -march=native          # Use all available CPU instructions
+        -mtune=native          # Optimize for current CPU
+        -ffast-math            # Enable fast math optimizations
+        -funroll-loops         # Unroll loops for vectorization
+        -ftree-vectorize       # Enable auto-vectorization (GCC)
+        -ftree-loop-vectorize  # Enable loop vectorization (GCC)
+    )
 endif()
 
 # macOS specific SFML paths

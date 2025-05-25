@@ -1,11 +1,7 @@
 #pragma once
 
-#include "Grid.hpp" // Added missing include for Grid class
+#include "Grid.hpp" // Added missing include for Grid class and Vector2f
 #include "SPHConfig.hpp"
-
-#ifndef HEADLESS_MODE
-#include <SFML/System/Vector2.hpp>
-#endif
 #include <unordered_set> // Added missing include for unordered_set
 #include <vector>
 

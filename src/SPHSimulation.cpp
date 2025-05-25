@@ -126,8 +126,8 @@ namespace sph
 		// Calculate average time per step
 		avgTimePerStep = 0;
 #pragma omp simd reduction(+ : avgTimePerStep)
-		for (double time : stepTimes)
-			avgTimePerStep += time;
+		for (size_t i = 0; i < stepTimes.size(); ++i)
+			avgTimePerStep += stepTimes[i];
 		avgTimePerStep /= stepTimes.size();
 
 		// Update metrics every second
