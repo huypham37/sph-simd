@@ -1,7 +1,0 @@
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/sph_simulation.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/edit_cache.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/rebuild_cache.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/list_install_components.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/install.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/install/local.dir
-/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/install/strip.dir
