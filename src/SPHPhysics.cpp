@@ -41,7 +41,7 @@ namespace sph
             // Filter particles with y position greater than 490
             for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
             {
-                sf::Vector2f position = particleSystem->getPosition(i);
+                Vector2f position = particleSystem->getPosition(i);
 
                 if (position.y > 490.0f)
                 {
@@ -75,21 +75,21 @@ namespace sph
                 {
                     {
                         int realNeighborCount = 0;
-                        sf::Vector2f pos = particleSystem->getPosition(i);
+                        Vector2f pos = particleSystem->getPosition(i);
                         std::vector<size_t> neighbors = grid->getNeighbors(pos.x, pos.y, 2 * h, particleSystem);
 
                         for (size_t neighborIdx : neighbors)
                         {
                             if (i == neighborIdx)
                                 continue;
-                            sf::Vector2f neighborPos = particleSystem->getPosition(neighborIdx);
-                            sf::Vector2f r = pos - neighborPos;
+                            Vector2f neighborPos = particleSystem->getPosition(neighborIdx);
+                            Vector2f r = pos - neighborPos;
                             float distSqr = r.x * r.x + r.y * r.y;
                             if (distSqr < 4 * h2)
                                 realNeighborCount++;
                         }
 
-                        sf::Vector2f vel = particleSystem->getVelocity(i);
+                        Vector2f vel = particleSystem->getVelocity(i);
                         // Debug output commented out
                     }
                 }
@@ -150,7 +150,7 @@ namespace sph
         float density = 0.0f;
 
         // Get particle data
-        sf::Vector2f pos_i = particleSystem->getPosition(particleIndex);
+        Vector2f pos_i = particleSystem->getPosition(particleIndex);
         float mass_i = particleSystem->getMass(particleIndex);
 
         // Include self-contribution for density
@@ -165,10 +165,10 @@ namespace sph
             if (particleIndex == neighborIdx)
                 continue;
 
-            sf::Vector2f pos_j = particleSystem->getPosition(neighborIdx);
+            Vector2f pos_j = particleSystem->getPosition(neighborIdx);
             float mass_j = particleSystem->getMass(neighborIdx);
 
-            sf::Vector2f r = pos_i - pos_j;
+            Vector2f r = pos_i - pos_j;
             float distSqr = r.x * r.x + r.y * r.y;
 
             if (distSqr < h2)
@@ -198,12 +198,12 @@ namespace sph
         const float artificial_epsilon = 0.01f * h2;
         const float alpha = 1.0f;
 
-        sf::Vector2f pressureAcceleration(0.0f, 0.0f);
-        sf::Vector2f viscosityAcceleration(0.0f, 0.0f);
+        Vector2f pressureAcceleration(0.0f, 0.0f);
+        Vector2f viscosityAcceleration(0.0f, 0.0f);
 
         // Get particle properties
-        sf::Vector2f pos_i = particleSystem->getPosition(particleIndex);
-        sf::Vector2f vel_i = particleSystem->getVelocity(particleIndex);
+        Vector2f pos_i = particleSystem->getPosition(particleIndex);
+        Vector2f vel_i = particleSystem->getVelocity(particleIndex);
         float density_i = particleSystem->getDensity(particleIndex);
         float pressure_i = particleSystem->getPressure(particleIndex);
 
@@ -221,19 +221,19 @@ namespace sph
                 continue;
 
             // Get neighbor properties
-            sf::Vector2f pos_j = particleSystem->getPosition(neighborIdx);
-            sf::Vector2f vel_j = particleSystem->getVelocity(neighborIdx);
+            Vector2f pos_j = particleSystem->getPosition(neighborIdx);
+            Vector2f vel_j = particleSystem->getVelocity(neighborIdx);
             float density_j = particleSystem->getDensity(neighborIdx);
             float pressure_j = particleSystem->getPressure(neighborIdx);
             float mass_j = particleSystem->getMass(neighborIdx);
 
-            sf::Vector2f r_ij = pos_i - pos_j; // Vector from j to i
+            Vector2f r_ij = pos_i - pos_j; // Vector from j to i
             float distSqr = r_ij.x * r_ij.x + r_ij.y * r_ij.y;
 
             if (distSqr < h2 && distSqr > EPS) // Check within h and avoid self/coincident
             {
                 float dist = std::sqrt(distSqr);
-                sf::Vector2f dir_ij = r_ij / dist; // Normalized direction from j to i
+                Vector2f dir_ij = r_ij / dist; // Normalized direction from j to i
 
                 // --- Pressure Acceleration Calculation ---
                 float pressureTerm = -(pressure_i / (density_i * density_i) +
@@ -241,11 +241,11 @@ namespace sph
 
                 float h_r = h - dist;
                 // Use Spiky gradient for pressure
-                sf::Vector2f gradW_spiky = SPIKY_GRAD_COEFF * h_r * h_r * dir_ij;
+                Vector2f gradW_spiky = SPIKY_GRAD_COEFF * h_r * h_r * dir_ij;
                 pressureAcceleration += mass_j * pressureTerm * gradW_spiky;
 
                 // --- Monaghan Artificial Viscosity Acceleration ---
-                sf::Vector2f vel_ij = vel_i - vel_j;                   // Relative velocity v_i - v_j
+                Vector2f vel_ij = vel_i - vel_j;                   // Relative velocity v_i - v_j
                 float v_dot_r = vel_ij.x * r_ij.x + vel_ij.y * r_ij.y; // v_ij dot r_ij
 
                 // Only apply viscosity if particles are approaching each other
@@ -284,8 +284,8 @@ namespace sph
         const float boundaryStiffness = 10000.0f;
         const float boundaryDecay = 2.0f;
 
-        sf::Vector2f pos = particleSystem->getPosition(particleIndex);
-        sf::Vector2f boundaryForce(0.0f, 0.0f);
+        Vector2f pos = particleSystem->getPosition(particleIndex);
+        Vector2f boundaryForce(0.0f, 0.0f);
 
         // Left wall repulsion
         if (pos.x < boundaryDistance)
@@ -324,14 +324,14 @@ namespace sph
         }
 
         // Add boundary acceleration to existing acceleration
-        sf::Vector2f currentAcc = particleSystem->getAcceleration(particleIndex);
-        sf::Vector2f boundaryAcc = boundaryForce / particleSystem->getDensity(particleIndex);
+        Vector2f currentAcc = particleSystem->getAcceleration(particleIndex);
+        Vector2f boundaryAcc = boundaryForce / particleSystem->getDensity(particleIndex);
         particleSystem->setAcceleration(particleIndex, currentAcc + boundaryAcc);
     }
 
     void SPHPhysics::integrateParticle(ParticleSystem *particleSystem, size_t particleIndex, float dt)
     {
-        sf::Vector2f velocity = particleSystem->getVelocity(particleIndex) + particleSystem->getAcceleration(particleIndex) * dt;
+        Vector2f velocity = particleSystem->getVelocity(particleIndex) + particleSystem->getAcceleration(particleIndex) * dt;
         particleSystem->setVelocity(particleIndex, velocity);
         particleSystem->setPosition(particleIndex, particleSystem->getPosition(particleIndex) + velocity * dt);
     }
@@ -340,8 +340,8 @@ namespace sph
     {
         constexpr float PARTICLE_RADIUS = 5.0f;
 
-        sf::Vector2f pos = particleSystem->getPosition(particleIndex);
-        sf::Vector2f vel = particleSystem->getVelocity(particleIndex);
+        Vector2f pos = particleSystem->getPosition(particleIndex);
+        Vector2f vel = particleSystem->getVelocity(particleIndex);
 
         // Simple boundary conditions with damping - failsafe only
         if (pos.x < PARTICLE_RADIUS)
@@ -380,10 +380,10 @@ namespace sph
         return POLY6_COEFF * h2_r2 * h2_r2 * h2_r2;
     }
 
-    sf::Vector2f SPHPhysics::kernelGradSpiky(float distance, const sf::Vector2f &direction)
+    Vector2f SPHPhysics::kernelGradSpiky(float distance, const Vector2f &direction)
     {
         if (distance >= h || distance <= 0.0f)
-            return sf::Vector2f(0.0f, 0.0f);
+            return Vector2f(0.0f, 0.0f);
 
         const float SPIKY_GRAD_COEFF = -10.0f / (M_PI * std::pow(h, 5));
         float h_r = h - distance;

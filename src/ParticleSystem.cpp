@@ -5,6 +5,10 @@
 #include <cstdint>
 #include "SPHConfig.hpp"
 
+#ifndef HEADLESS_MODE
+#include <SFML/Graphics.hpp>
+#endif
+
 namespace sph
 {
 
@@ -169,19 +173,19 @@ namespace sph
 	}
 
 	// Helper methods for accessing particle data by index
-	sf::Vector2f ParticleSystem::getPosition(size_t index) const
+	Vector2f ParticleSystem::getPosition(size_t index) const
 	{
-		return sf::Vector2f(positionsX[index], positionsY[index]);
+		return Vector2f(positionsX[index], positionsY[index]);
 	}
 
-	sf::Vector2f ParticleSystem::getVelocity(size_t index) const
+	Vector2f ParticleSystem::getVelocity(size_t index) const
 	{
-		return sf::Vector2f(velocitiesX[index], velocitiesY[index]);
+		return Vector2f(velocitiesX[index], velocitiesY[index]);
 	}
 
-	sf::Vector2f ParticleSystem::getAcceleration(size_t index) const
+	Vector2f ParticleSystem::getAcceleration(size_t index) const
 	{
-		return sf::Vector2f(accelerationsX[index], accelerationsY[index]);
+		return Vector2f(accelerationsX[index], accelerationsY[index]);
 	}
 
 	float ParticleSystem::getDensity(size_t index) const
@@ -199,22 +203,22 @@ namespace sph
 		return masses[index];
 	}
 
-	void ParticleSystem::setPosition(size_t index, const sf::Vector2f &pos)
+	void ParticleSystem::setPosition(size_t index, const Vector2f &pos)
 	{
 		positionsX[index] = pos.x;
 		positionsY[index] = pos.y;
 #ifndef HEADLESS_MODE
-		shapes[index].setPosition(pos);
+		shapes[index].setPosition(sf::Vector2f(pos.x, pos.y));
 #endif
 	}
 
-	void ParticleSystem::setVelocity(size_t index, const sf::Vector2f &vel)
+	void ParticleSystem::setVelocity(size_t index, const Vector2f &vel)
 	{
 		velocitiesX[index] = vel.x;
 		velocitiesY[index] = vel.y;
 	}
 
-	void ParticleSystem::setAcceleration(size_t index, const sf::Vector2f &acc)
+	void ParticleSystem::setAcceleration(size_t index, const Vector2f &acc)
 	{
 		accelerationsX[index] = acc.x;
 		accelerationsY[index] = acc.y;

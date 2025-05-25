@@ -3,7 +3,9 @@
 #include "Grid.hpp" // Added missing include for Grid class
 #include "SPHConfig.hpp"
 
+#ifndef HEADLESS_MODE
 #include <SFML/System/Vector2.hpp>
+#endif
 #include <unordered_set> // Added missing include for unordered_set
 #include <vector>
 
@@ -168,16 +170,16 @@ namespace sph
     float getViscosity() const { return viscosityCoefficient; }
     float getGasConstant() const { return gasConstant; }
     float getRestDensity() const { return restDensity; }
-    sf::Vector2f getGravity() const { return gravity; }
+    Vector2f getGravity() const { return gravity; }
 
     // Expose kernel functions for parallel tasks
     float kernelPoly6(float distSquared);
-    sf::Vector2f kernelGradSpiky(float distance, const sf::Vector2f &direction);
+    Vector2f kernelGradSpiky(float distance, const Vector2f &direction);
     float kernelViscosityLaplacian(float distance);
 
   private:
     // SPH Parameters
-    sf::Vector2f gravity;                      // Gravity force
+    Vector2f gravity;                      // Gravity force
     float h;                                   // Smoothing radius
     float h2;                                  // h^2 (pre-computed)
     float viscosityCoefficient;                // Viscosity coefficient

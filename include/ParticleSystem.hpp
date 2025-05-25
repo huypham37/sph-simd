@@ -3,9 +3,7 @@
 #include <vector>
 #include "Grid.hpp"
 
-#ifdef HEADLESS_MODE
-#include <SFML/System.hpp> // Use the main System header, not specific files
-#else
+#ifndef HEADLESS_MODE
 #include <SFML/Graphics.hpp>
 #endif
 
@@ -115,16 +113,16 @@ namespace sph
 		std::vector<float> &getMasses() { return masses; }
 
 		// Helper methods for getting particle data by index
-		sf::Vector2f getPosition(size_t index) const;
-		sf::Vector2f getVelocity(size_t index) const;
-		sf::Vector2f getAcceleration(size_t index) const;
+		Vector2f getPosition(size_t index) const;
+		Vector2f getVelocity(size_t index) const;
+		Vector2f getAcceleration(size_t index) const;
 		float getDensity(size_t index) const;
 		float getPressure(size_t index) const;
 		float getMass(size_t index) const;
 
-		void setPosition(size_t index, const sf::Vector2f &pos);
-		void setVelocity(size_t index, const sf::Vector2f &vel);
-		void setAcceleration(size_t index, const sf::Vector2f &acc);
+		void setPosition(size_t index, const Vector2f &pos);
+		void setVelocity(size_t index, const Vector2f &vel);
+		void setAcceleration(size_t index, const Vector2f &acc);
 		void setDensity(size_t index, float density);
 		void setPressure(size_t index, float pressure);
 

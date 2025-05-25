@@ -38,7 +38,7 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Volumes/Meida/01-CodeLab/sph-simd/build/sph_simulation")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Volumes/Meida/01-CodeLab/sph-simd/build_headless/sph_simulation")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/sph_simulation" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/sph_simulation")
     if(CMAKE_INSTALL_DO_STRIP)
@@ -48,13 +48,13 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  include("/Volumes/Meida/01-CodeLab/sph-simd/build/CMakeFiles/sph_simulation.dir/install-cxx-module-bmi-Release.cmake" OPTIONAL)
+  include("/Volumes/Meida/01-CodeLab/sph-simd/build_headless/CMakeFiles/sph_simulation.dir/install-cxx-module-bmi-Release.cmake" OPTIONAL)
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/Volumes/Meida/01-CodeLab/sph-simd/build/install_local_manifest.txt"
+  file(WRITE "/Volumes/Meida/01-CodeLab/sph-simd/build_headless/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -70,6 +70,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/Volumes/Meida/01-CodeLab/sph-simd/build/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "/Volumes/Meida/01-CodeLab/sph-simd/build_headless/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

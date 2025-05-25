@@ -1,8 +1,6 @@
 #pragma once
 
-#ifdef HEADLESS_MODE
-    #include <SFML/System.hpp>
-#else
+#ifndef HEADLESS_MODE
     #include <SFML/Graphics.hpp>
     #include "Renderer.hpp"
 #endif
@@ -95,7 +93,7 @@ namespace sph
 		 * @param mousePos Mouse position in window coordinates
 		 * @param strength Force strength (positive = push, negative = pull)
 		 */
-		void applyMouseForce(const sf::Vector2f &mousePos, float strength);
+		void applyMouseForce(const Vector2f &mousePos, float strength);
 
 		// Simulation parameter setters
 		void setGravity(float x, float y);

@@ -2,11 +2,50 @@
 
 #include <vector>
 #include <unordered_map>
+#include <cstddef> // For size_t
 
 #ifdef HEADLESS_MODE
-#include <SFML/System.hpp> // Use the main System header, not specific files
+// Simple Vector2f replacement for headless mode
+struct Vector2f {
+    float x, y;
+    Vector2f(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+    
+    Vector2f operator-(const Vector2f& other) const {
+        return Vector2f(x - other.x, y - other.y);
+    }
+    
+    Vector2f operator+(const Vector2f& other) const {
+        return Vector2f(x + other.x, y + other.y);
+    }
+    
+    Vector2f operator*(float scalar) const {
+        return Vector2f(x * scalar, y * scalar);
+    }
+    
+    Vector2f operator/(float scalar) const {
+        return Vector2f(x / scalar, y / scalar);
+    }
+    
+    Vector2f& operator+=(const Vector2f& other) {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+    
+    Vector2f& operator/=(float scalar) {
+        x /= scalar;
+        y /= scalar;
+        return *this;
+    }
+};
+
+// Global operator for scalar * Vector2f  
+inline Vector2f operator*(float scalar, const Vector2f& vec) {
+    return Vector2f(vec.x * scalar, vec.y * scalar);
+}
 #else
 #include <SFML/Graphics.hpp>
+using Vector2f = sf::Vector2f;
 #endif
 
 namespace sph

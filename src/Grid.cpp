@@ -24,7 +24,7 @@ namespace sph
 
     for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
     {
-      sf::Vector2f pos = particleSystem->getPosition(i);
+      Vector2f pos = particleSystem->getPosition(i);
       insertParticleByIndex(i, pos.x, pos.y);
     }
   }
@@ -60,7 +60,7 @@ namespace sph
           // Filter particles by actual distance
           for (size_t particleIndex : it->second)
           {
-            sf::Vector2f particlePos = particleSystem->getPosition(particleIndex);
+            Vector2f particlePos = particleSystem->getPosition(particleIndex);
             float dx = x - particlePos.x;
             float dy = y - particlePos.y;
             float distSquared = dx * dx + dy * dy;
@@ -79,7 +79,7 @@ namespace sph
 
   std::vector<size_t> Grid::getNeighborsByIndex(size_t particleIndex, float radius, const ParticleSystem *particleSystem)
   {
-    sf::Vector2f pos = particleSystem->getPosition(particleIndex);
+    Vector2f pos = particleSystem->getPosition(particleIndex);
     return getNeighbors(pos.x, pos.y, radius, particleSystem);
   }
 

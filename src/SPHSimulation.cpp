@@ -189,7 +189,7 @@ namespace sph
 		physics->setRestDensity(d);
 	}
 
-	void SPHSimulation::applyMouseForce(const sf::Vector2f &mousePos, float strength)
+	void SPHSimulation::applyMouseForce(const Vector2f &mousePos, float strength)
 	{
 		// Radius of influence for mouse interaction
 		const float radiusOfInfluence = 50.0f;
@@ -199,8 +199,8 @@ namespace sph
 #pragma omp simd
 		for (size_t i = 0; i < particleCount; ++i)
 		{
-			sf::Vector2f particlePos = particles->getPosition(i);
-			sf::Vector2f direction = particlePos - mousePos;
+			Vector2f particlePos = particles->getPosition(i);
+			Vector2f direction = particlePos - mousePos;
 			float distanceSqr = direction.x * direction.x + direction.y * direction.y;
 
 			// Only apply force if particle is within radius of influence
@@ -216,7 +216,7 @@ namespace sph
 					float forceFactor = strength * (1.0f - distance / radiusOfInfluence);
 
 					// Apply force directly to velocity for immediate response
-					sf::Vector2f currentVel = particles->getVelocity(i);
+					Vector2f currentVel = particles->getVelocity(i);
 					particles->setVelocity(i, currentVel + direction * forceFactor);
 				}
 			}

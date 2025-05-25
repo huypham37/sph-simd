@@ -199,7 +199,7 @@ int main()
 						static_cast<float>(moveEvent->position.y)};
 
 					// Apply force to particles based on mouse movement
-					simulation.applyMouseForce(currentMousePos, MOUSE_FORCE_STRENGTH);
+					simulation.applyMouseForce(Vector2f(currentMousePos.x, currentMousePos.y), MOUSE_FORCE_STRENGTH);
 
 					// Save current position for next frame
 					lastMousePos = currentMousePos;
