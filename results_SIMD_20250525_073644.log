@@ -1,0 +1,43 @@
+SPH Simulation initialized with dimensions 1200x600
+Creating dam break scenario with 40x50 particles
+Dam break scenario created with 2000 particles
+===== Performance Metrics =====
+Particles: 2000
+OpenMP threads: 8
+Particles/second: 1404428.4
+Timesteps/second: 702.21
+Timesteps/minute: 42132.9
+Timesteps/hour: 2527971.1
+Simulation:Physical time ratio: 1.432x
+Avg time per step: 1.69330 ms
+=============================
+===== Performance Metrics =====
+Particles: 2000
+OpenMP threads: 8
+Particles/second: 1415080.3
+Timesteps/second: 707.54
+Timesteps/minute: 42452.4
+Timesteps/hour: 2547144.6
+Simulation:Physical time ratio: 1.435x
+Avg time per step: 1.45319 ms
+=============================
+===== Performance Metrics =====
+Particles: 2000
+OpenMP threads: 8
+Particles/second: 1341612.9
+Timesteps/second: 670.81
+Timesteps/minute: 40248.4
+Timesteps/hour: 2414903.2
+Simulation:Physical time ratio: 1.440x
+Avg time per step: 1.42186 ms
+=============================
+===== Performance Metrics =====
+Particles: 2000
+OpenMP threads: 8
+Particles/second: 1382010.8
+Timesteps/second: 691.01
+Timesteps/minute: 41460.3
+Timesteps/hour: 2487619.4
+Simulation:Physical time ratio: 1.449x
+Avg time per step: 1.38126 ms
+=============================
