@@ -1,9 +1,9 @@
 # ninja log v5
-0	1003	1748191683622923870	CMakeFiles/sph_simulation.dir/src/main.cpp.o	e8fca2093b3b90d4
-1	1059	1748191683678712830	CMakeFiles/sph_simulation.dir/src/SPHSimulation.cpp.o	81c4d2a766a414b8
-1	1009	1748191683629004477	CMakeFiles/sph_simulation.dir/src/SPHPhysics.cpp.o	a9b0d079c24abe1d
-1	920	1748191683538335619	CMakeFiles/sph_simulation.dir/src/Particle.cpp.o	e6c0a2d0b443a133
-1	947	1748191683565555164	CMakeFiles/sph_simulation.dir/src/Renderer.cpp.o	19424457f1baecb6
-1	990	1748191683608283871	CMakeFiles/sph_simulation.dir/src/Grid.cpp.o	e5c16b06f26a3d83
-1	1097	1748191683716711301	CMakeFiles/sph_simulation.dir/src/ParticleSystem.cpp.o	b0a62ec477bb88c8
-1097	1178	1748191683799173640	sph_simulation	b93464ca790527de
+2	865	1748192862554639307	CMakeFiles/sph_simulation.dir/src/Particle.cpp.o	e6c0a2d0b443a133
+2	876	1748192862565002530	CMakeFiles/sph_simulation.dir/src/Renderer.cpp.o	19424457f1baecb6
+2	887	1748192862576041084	CMakeFiles/sph_simulation.dir/src/Grid.cpp.o	e5c16b06f26a3d83
+2	906	1748192862595581450	CMakeFiles/sph_simulation.dir/src/SPHPhysics.cpp.o	a9b0d079c24abe1d
+1	930	1748192862619539262	CMakeFiles/sph_simulation.dir/src/main.cpp.o	e8fca2093b3b90d4
+2	970	1748192862659736990	CMakeFiles/sph_simulation.dir/src/SPHSimulation.cpp.o	81c4d2a766a414b8
+2	1002	1748192862691846239	CMakeFiles/sph_simulation.dir/src/ParticleSystem.cpp.o	b0a62ec477bb88c8
+1002	1076	1748192862767191417	sph_simulation	b93464ca790527de

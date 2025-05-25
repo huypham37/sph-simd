@@ -20,10 +20,11 @@ CMAKE_ADDR2LINE:FILEPATH=/opt/homebrew/opt/llvm/bin/llvm-addr2line
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//No help, variable specified on the command line.
-CMAKE_BUILD_TYPE:STRING=Debug
+//Choose the type of build, options are: None Debug Release RelWithDebInfo
+// MinSizeRel ...
+CMAKE_BUILD_TYPE:STRING=
 
-//No help, variable specified on the command line.
+//CXX compiler
 CMAKE_CXX_COMPILER:FILEPATH=/opt/homebrew/opt/llvm/bin/clang++
 
 //LLVM archiver
@@ -50,7 +51,7 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 //Flags used by the CXX compiler during RELWITHDEBINFO builds.
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
-//No help, variable specified on the command line.
+//C compiler
 CMAKE_C_COMPILER:FILEPATH=/opt/homebrew/opt/llvm/bin/clang
 
 //LLVM archiver
@@ -98,8 +99,8 @@ CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 //Enable/Disable output of build database during the build.
 CMAKE_EXPORT_BUILD_DATABASE:BOOL=
 
-//No help, variable specified on the command line.
-CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
+//Enable/Disable output of compile commands during generation.
+CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=
 
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=/Volumes/Meida/01-CodeLab/sph-simd/build/CMakeFiles/pkgRedirects
