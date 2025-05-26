@@ -56,7 +56,7 @@ namespace sph
             }
         }
 
-// #pragma omp parallel
+        // #pragma omp parallel
         {
             {
                 int numThreads = omp_get_num_threads();
@@ -99,7 +99,7 @@ namespace sph
 
     void SPHPhysics::computeForces(ParticleSystem *particleSystem, Grid *grid)
     {
-// #pragma omp simd
+        // #pragma omp simd
         for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
         {
             computeForcesForParticle(particleSystem, i);
@@ -117,7 +117,7 @@ namespace sph
                 }
             }
 
-// #pragma omp simd
+            // #pragma omp simd
             for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
             {
                 integrateParticle(particleSystem, i, dt);
@@ -127,7 +127,7 @@ namespace sph
 
     void SPHPhysics::computeBoundaryForces(ParticleSystem *particleSystem, float width, float height)
     {
-// #pragma omp simd
+        // #pragma omp simd
         for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
         {
             computeBoundaryForcesForParticle(particleSystem, i, width, height);
@@ -136,7 +136,7 @@ namespace sph
 
     void SPHPhysics::resolveCollisions(ParticleSystem *particleSystem, Grid *grid, float width, float height)
     {
-// #pragma omp simd
+        // #pragma omp simd
         for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
         {
             resolveCollisionsForParticle(particleSystem, i, width, height);
@@ -159,7 +159,7 @@ namespace sph
         // Get neighbors and sum contribution
         std::vector<size_t> neighbors = particleSystem->getGrid()->getNeighbors(pos_i.x, pos_i.y, h, particleSystem);
 
-// #pragma omp simd reduction(+ : density)
+        // #pragma omp simd reduction(+ : density)
         for (size_t neighborIdx : neighbors)
         {
             if (particleIndex == neighborIdx)
@@ -214,7 +214,7 @@ namespace sph
         // Get neighbors
         std::vector<size_t> neighbors = particleSystem->getGrid()->getNeighbors(pos_i.x, pos_i.y, h, particleSystem);
 
-// #pragma omp simd
+        // #pragma omp simd
         for (size_t neighborIdx : neighbors)
         {
             if (particleIndex == neighborIdx)
@@ -245,7 +245,7 @@ namespace sph
                 pressureAcceleration += mass_j * pressureTerm * gradW_spiky;
 
                 // --- Monaghan Artificial Viscosity Acceleration ---
-                Vector2f vel_ij = vel_i - vel_j;                   // Relative velocity v_i - v_j
+                Vector2f vel_ij = vel_i - vel_j;                       // Relative velocity v_i - v_j
                 float v_dot_r = vel_ij.x * r_ij.x + vel_ij.y * r_ij.y; // v_ij dot r_ij
 
                 // Only apply viscosity if particles are approaching each other

@@ -175,7 +175,7 @@ namespace sph
 
   private:
     // SPH Parameters
-    Vector2f gravity;                      // Gravity force
+    Vector2f gravity;                          // Gravity force
     float h;                                   // Smoothing radius
     float h2;                                  // h^2 (pre-computed)
     float viscosityCoefficient;                // Viscosity coefficient

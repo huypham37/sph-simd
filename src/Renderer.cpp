@@ -26,7 +26,7 @@ namespace sph
 		}
 	}
 
-	void Renderer::drawParticlesFromSoA(const ParticleSystem *particleSystem, sf::RenderWindow &window)
+	void Renderer::drawParticles(const ParticleSystem *particleSystem, sf::RenderWindow &window)
 	{
 #ifndef HEADLESS_MODE
 		const auto &shapes = particleSystem->getShapes();

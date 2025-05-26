@@ -150,7 +150,7 @@ namespace sph
 		particles->updateAllParticleVisuals();
 
 		// Draw particles using the new SoA interface
-		renderer->drawParticlesFromSoA(particles.get(), window);
+		renderer->drawParticles(particles.get(), window);
 	}
 #endif
 

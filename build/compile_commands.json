@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/main.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/main.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/main.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/SPHSimulation.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/SPHSimulation.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/SPHSimulation.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/SPHSimulation.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/SPHPhysics.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/SPHPhysics.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/SPHPhysics.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/SPHPhysics.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/Particle.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/Particle.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/Particle.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/Particle.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/Grid.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/Grid.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/Grid.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/Grid.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/ParticleSystem.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/ParticleSystem.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/ParticleSystem.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/ParticleSystem.cpp.o"
+},
+{
+  "directory": "/Volumes/Meida/01-CodeLab/sph-simd/build",
+  "command": "/opt/homebrew/opt/llvm/bin/clang++ -I/Volumes/Meida/01-CodeLab/sph-simd/include -I/opt/homebrew/include -I/usr/local/include -g -std=c++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -march=native -mtune=native -ffast-math -funroll-loops -fvectorize -ftree-vectorize -mcpu=apple-m1 -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -o CMakeFiles/sph_simulation.dir/src/Renderer.cpp.o -c /Volumes/Meida/01-CodeLab/sph-simd/src/Renderer.cpp",
+  "file": "/Volumes/Meida/01-CodeLab/sph-simd/src/Renderer.cpp",
+  "output": "CMakeFiles/sph_simulation.dir/src/Renderer.cpp.o"
+}
+]

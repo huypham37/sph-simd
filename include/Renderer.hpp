@@ -37,7 +37,7 @@ namespace sph
 		 * @param particleSystem Particle system using SoA layout
 		 * @param window SFML window to draw to
 		 */
-		void drawParticlesFromSoA(const ParticleSystem *particleSystem, sf::RenderWindow &window);
+		void drawParticles(const ParticleSystem *particleSystem, sf::RenderWindow &window);
 
 	private:
 		sf::Font font;	 // Font for text rendering
