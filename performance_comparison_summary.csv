@@ -1,4 +1,0 @@
-Version,Particles_per_second,Timesteps_per_second,Avg_time_per_step_ms,Improvement_percent
-NO_SIMD,1421138.8,710.57,1.41367,0.0
-SIMD_Optimized,1472516.8,736.26,1.37680,3.6
-Difference,51378.0,25.69,-0.03687,3.6
