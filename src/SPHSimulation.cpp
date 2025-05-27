@@ -17,10 +17,8 @@ namespace sph
 		  framesSinceLastMetricUpdate(0),
 		  particlesPerSecond(0.0),
 		  timeStepsPerSecond(0.0),
-		  simToPhysicalRatio(0.0),
 		  avgTimePerStep(0.0),
-		  totalSimulationTime(0.0),
-		  totalPhysicalTime(0.0)
+		  totalSimulationTime(0.0)
 	{
 		// Create component instances
 		particles = std::make_unique<ParticleSystem>(width, height, smoothingRadius);
@@ -116,8 +114,6 @@ namespace sph
 		// Update metrics
 		framesSinceLastMetricUpdate++;
 		totalSimulationTime += stepTime;
-		totalPhysicalTime += dt;
-		simToPhysicalRatio = totalSimulationTime / totalPhysicalTime;
 
 		stepTimes.push_back(stepTime);
 		if (stepTimes.size() > 100)
@@ -236,7 +232,6 @@ namespace sph
 		std::cout << "Timesteps/second: " << std::fixed << std::setprecision(2) << timeStepsPerSecond << std::endl;
 		std::cout << "Timesteps/minute: " << std::fixed << std::setprecision(1) << timeStepsPerSecond * 60 << std::endl;
 		std::cout << "Timesteps/hour: " << std::fixed << std::setprecision(1) << timeStepsPerSecond * 3600 << std::endl;
-		std::cout << "Simulation:Physical time ratio: " << std::fixed << std::setprecision(3) << simToPhysicalRatio << "x" << std::endl;
 		std::cout << "Avg time per step: " << std::fixed << std::setprecision(5) << avgTimePerStep * 1000 << " ms" << std::endl;
 		std::cout << "=============================" << std::endl;
 	}

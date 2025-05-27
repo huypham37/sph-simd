@@ -57,6 +57,10 @@
 		"variant": "cpp",
 		"string": "cpp",
 		"functional": "cpp",
-		"sstream": "cpp"
+		"sstream": "cpp",
+		"charconv": "cpp",
+		"forward_list": "cpp",
+		"iomanip": "cpp",
+		"string_view": "cpp"
 	}
 }

@@ -110,7 +110,6 @@ namespace sph
 		// Metrics getters
 		double getParticlesPerSecond() const { return particlesPerSecond; }
 		double getTimeStepsPerSecond() const { return timeStepsPerSecond; }
-		double getSimToPhysicalTimeRatio() const { return simToPhysicalRatio; }
 		double getAvgTimePerStep() const { return avgTimePerStep; }
 
 	private:
@@ -134,10 +133,8 @@ namespace sph
 		int framesSinceLastMetricUpdate;
 		double particlesPerSecond;
 		double timeStepsPerSecond;
-		double simToPhysicalRatio;
 		double avgTimePerStep;
 		double totalSimulationTime;
-		double totalPhysicalTime;
 		std::vector<double> stepTimes; // For tracking step time vs particle count
 	};
 
