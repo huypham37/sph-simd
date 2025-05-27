@@ -54,43 +54,50 @@ namespace sph
 		{
 			size_t particleCount = particles->getParticleCount();
 
+			// Batch processing with better cache locality
+			constexpr size_t BATCH_SIZE = 64; // Optimized for cache line size
+
 // Single OpenMP parallel region for the entire simulation step
 #pragma omp parallel
 			{
-// Cache neighbors in parallel
-#pragma omp for schedule(dynamic, 64)
-				for (size_t i = 0; i < particleCount; ++i)
+// Cache neighbors in parallel with batch processing
+#pragma omp for schedule(dynamic, BATCH_SIZE / 4)
+				for (size_t batch = 0; batch < particleCount; batch += BATCH_SIZE)
 				{
-					particles->setCachedNeighbors(i, particles->getGrid()->getNeighborsByIndex(i, smoothingRadius * 2, particles.get()));
+					size_t batch_end = std::min(batch + BATCH_SIZE, particleCount);
+					for (size_t i = batch; i < batch_end; ++i)
+					{
+						particles->setCachedNeighbors(i, particles->getGrid()->getNeighborsByIndex(i, smoothingRadius * 2, particles.get()));
+					}
 				}
 
-// Density and pressure calculation phase
+// Density and pressure calculation phase with batch processing
 #pragma omp barrier
-#pragma omp for schedule(static)
+#pragma omp for schedule(static, BATCH_SIZE)
 				for (size_t i = 0; i < particleCount; ++i)
 				{
 					physics->computeDensityPressureForParticle(particles.get(), i);
 				}
 
-// Force calculation phase
+// Force calculation phase with batch processing
 #pragma omp barrier
-#pragma omp for schedule(static)
+#pragma omp for schedule(static, BATCH_SIZE)
 				for (size_t i = 0; i < particleCount; ++i)
 				{
 					physics->computeForcesForParticle(particles.get(), i);
 				}
 
-// Boundary forces
+// Boundary forces with batch processing
 #pragma omp barrier
-#pragma omp for schedule(static)
+#pragma omp for schedule(static, BATCH_SIZE)
 				for (size_t i = 0; i < particleCount; ++i)
 				{
 					physics->computeBoundaryForcesForParticle(particles.get(), i, width, height);
 				}
 
-// Integration
+// Integration with batch processing
 #pragma omp barrier
-#pragma omp for schedule(static)
+#pragma omp for schedule(static, BATCH_SIZE)
 				for (size_t i = 0; i < particleCount; ++i)
 				{
 					physics->integrateParticle(particles.get(), i, sub_dt);
@@ -98,9 +105,11 @@ namespace sph
 			} // End of parallel region
 		}
 
-		// Collision resolution (can be parallel but separate from main computation)
+		// Collision resolution with batch processing for better cache locality
 		size_t particleCount = particles->getParticleCount();
-#pragma omp parallel for schedule(static)
+		constexpr size_t COLLISION_BATCH_SIZE = 128; // Larger batch for simple operations
+
+#pragma omp parallel for schedule(static, COLLISION_BATCH_SIZE)
 		for (size_t i = 0; i < particleCount; ++i)
 		{
 			physics->resolveCollisionsForParticle(particles.get(), i, width, height);
@@ -119,12 +128,18 @@ namespace sph
 		if (stepTimes.size() > 100)
 			stepTimes.erase(stepTimes.begin()); // Keep last 100 measurements
 
-		// Calculate average time per step
-		avgTimePerStep = 0;
+		// Calculate average time per step with better cache efficiency
+		avgTimePerStep = 0.0;
+		const double *step_times_data = stepTimes.data();
+		size_t step_count = stepTimes.size();
+
+// Vectorizable reduction with better memory access pattern
 #pragma omp simd reduction(+ : avgTimePerStep)
-		for (size_t i = 0; i < stepTimes.size(); ++i)
-			avgTimePerStep += stepTimes[i];
-		avgTimePerStep /= stepTimes.size();
+		for (size_t i = 0; i < step_count; ++i)
+		{
+			avgTimePerStep += step_times_data[i];
+		}
+		avgTimePerStep /= step_count;
 
 		// Update metrics every second
 		auto now = std::chrono::high_resolution_clock::now();
@@ -192,28 +207,45 @@ namespace sph
 		const float radiusSqr = radiusOfInfluence * radiusOfInfluence;
 
 		size_t particleCount = particles->getParticleCount();
-#pragma omp simd
-		for (size_t i = 0; i < particleCount; ++i)
+
+		// Direct array access for better cache performance
+		std::vector<float> &vel_x = particles->getVelocitiesX();
+		std::vector<float> &vel_y = particles->getVelocitiesY();
+		const std::vector<float> &pos_x = particles->getPositionsX();
+		const std::vector<float> &pos_y = particles->getPositionsY();
+
+		// Process in batches for better cache locality
+		constexpr size_t BATCH_SIZE = 64;
+		for (size_t batch = 0; batch < particleCount; batch += BATCH_SIZE)
 		{
-			Vector2f particlePos = particles->getPosition(i);
-			Vector2f direction = particlePos - mousePos;
-			float distanceSqr = direction.x * direction.x + direction.y * direction.y;
+			size_t batch_end = std::min(batch + BATCH_SIZE, particleCount);
 
-			// Only apply force if particle is within radius of influence
-			if (distanceSqr < radiusSqr)
+// Vectorizable loop with direct array access
+#pragma omp simd
+			for (size_t i = batch; i < batch_end; ++i)
 			{
-				// Calculate force based on distance (stronger when closer)
-				float distance = std::sqrt(distanceSqr);
+				float dx = pos_x[i] - mousePos.x;
+				float dy = pos_y[i] - mousePos.y;
+				float distanceSqr = dx * dx + dy * dy;
 
-				// Normalize direction and scale by strength and distance factor
-				if (distance > 0.1f)
-				{ // Prevent division by zero or very small values
-					direction /= distance;
-					float forceFactor = strength * (1.0f - distance / radiusOfInfluence);
+				// Only apply force if particle is within radius of influence
+				if (distanceSqr < radiusSqr)
+				{
+					// Calculate force based on distance (stronger when closer)
+					float distance = std::sqrt(distanceSqr);
 
-					// Apply force directly to velocity for immediate response
-					Vector2f currentVel = particles->getVelocity(i);
-					particles->setVelocity(i, currentVel + direction * forceFactor);
+					// Normalize direction and scale by strength and distance factor
+					if (distance > 0.1f) // Prevent division by zero or very small values
+					{
+						float inv_distance = 1.0f / distance;
+						float dir_x = dx * inv_distance;
+						float dir_y = dy * inv_distance;
+						float forceFactor = strength * (1.0f - distance / radiusOfInfluence);
+
+						// Apply force directly to velocity for immediate response
+						vel_x[i] += dir_x * forceFactor;
+						vel_y[i] += dir_y * forceFactor;
+					}
 				}
 			}
 		}

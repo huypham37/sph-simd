@@ -39,11 +39,10 @@ namespace sph
         if (shouldPrintDebug && particleSystem->getParticleCount() > 0)
         {
             // Filter particles with y position greater than 490
+            const float *pos_y = particleSystem->getPositionsYData();
             for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
             {
-                Vector2f position = particleSystem->getPosition(i);
-
-                if (position.y > 490.0f)
+                if (pos_y[i] > 490.0f)
                 {
                     debugParticles.insert(i);
                 }
@@ -75,22 +74,22 @@ namespace sph
                 {
                     {
                         int realNeighborCount = 0;
-                        Vector2f pos = particleSystem->getPosition(i);
-                        std::vector<size_t> neighbors = grid->getNeighbors(pos.x, pos.y, 2 * h, particleSystem);
+                        const float *pos_x = particleSystem->getPositionsXData();
+                        const float *pos_y = particleSystem->getPositionsYData();
+                        std::vector<size_t> neighbors = grid->getNeighbors(pos_x[i], pos_y[i], 2 * h, particleSystem);
 
                         for (size_t neighborIdx : neighbors)
                         {
                             if (i == neighborIdx)
                                 continue;
-                            Vector2f neighborPos = particleSystem->getPosition(neighborIdx);
-                            Vector2f r = pos - neighborPos;
-                            float distSqr = r.x * r.x + r.y * r.y;
+                            float dx = pos_x[i] - pos_x[neighborIdx];
+                            float dy = pos_y[i] - pos_y[neighborIdx];
+                            float distSqr = dx * dx + dy * dy;
                             if (distSqr < 4 * h2)
                                 realNeighborCount++;
                         }
 
-                        Vector2f vel = particleSystem->getVelocity(i);
-                        // Debug output commented out
+                        // Debug output commented out - vel data available via direct access if needed
                     }
                 }
             }
@@ -108,19 +107,35 @@ namespace sph
 
     void SPHPhysics::integrate(ParticleSystem *particleSystem, float dt)
     {
-        {
-            {
-                int numThreads = omp_get_num_threads();
-                if (timeStepCounter == 1 || timeStepCounter % 500 == 0)
-                {
-                    std::cout << "Integrating with " << numThreads << " threads" << std::endl;
-                }
-            }
+        size_t particleCount = particleSystem->getParticleCount();
 
-            // #pragma omp simd
-            for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
+        // Use direct array pointers for maximum performance
+        float *vel_x = particleSystem->getVelocitiesXData();
+        float *vel_y = particleSystem->getVelocitiesYData();
+        float *pos_x = particleSystem->getPositionsXData();
+        float *pos_y = particleSystem->getPositionsYData();
+        const float *accel_x = particleSystem->getAccelerationsXData();
+        const float *accel_y = particleSystem->getAccelerationsYData();
+
+        // Batch processing with SIMD optimization
+        constexpr size_t BATCH_SIZE = 64;
+
+#pragma omp parallel for schedule(static)
+        for (size_t batch = 0; batch < particleCount; batch += BATCH_SIZE)
+        {
+            size_t batch_end = std::min(batch + BATCH_SIZE, particleCount);
+
+// Vectorizable integration loop
+#pragma omp simd aligned(vel_x, vel_y, pos_x, pos_y, accel_x, accel_y : 32)
+            for (size_t i = batch; i < batch_end; ++i)
             {
-                integrateParticle(particleSystem, i, dt);
+                // Update velocity: v = v + a * dt
+                vel_x[i] += accel_x[i] * dt;
+                vel_y[i] += accel_y[i] * dt;
+
+                // Update position: p = p + v * dt
+                pos_x[i] += vel_x[i] * dt;
+                pos_y[i] += vel_y[i] * dt;
             }
         }
     }
@@ -149,27 +164,36 @@ namespace sph
         const float POLY6_COEFF = 4.0f / (M_PI * std::pow(h, 8));
         float density = 0.0f;
 
-        // Get particle data
-        Vector2f pos_i = particleSystem->getPosition(particleIndex);
-        float mass_i = particleSystem->getMass(particleIndex);
+        // Direct array access - eliminate expensive getters
+        const std::vector<float> &pos_x = particleSystem->getPositionsX();
+        const std::vector<float> &pos_y = particleSystem->getPositionsY();
+        const std::vector<float> &masses = particleSystem->getMasses();
+
+        float pos_i_x = pos_x[particleIndex];
+        float pos_i_y = pos_y[particleIndex];
+        float mass_i = masses[particleIndex];
 
         // Include self-contribution for density
         density += mass_i * POLY6_COEFF * h2 * h2 * h2;
 
-        // Get neighbors and sum contribution
-        std::vector<size_t> neighbors = particleSystem->getGrid()->getNeighbors(pos_i.x, pos_i.y, h, particleSystem);
+        // Use cached neighbors for better performance
+        const std::vector<size_t> &neighbors = particleSystem->getCachedNeighbors(particleIndex);
 
-        // #pragma omp simd reduction(+ : density)
-        for (size_t neighborIdx : neighbors)
+// Vectorizable loop with direct array access
+#pragma omp simd reduction(+ : density)
+        for (size_t j = 0; j < neighbors.size(); ++j)
         {
+            size_t neighborIdx = neighbors[j];
             if (particleIndex == neighborIdx)
                 continue;
 
-            Vector2f pos_j = particleSystem->getPosition(neighborIdx);
-            float mass_j = particleSystem->getMass(neighborIdx);
+            float pos_j_x = pos_x[neighborIdx];
+            float pos_j_y = pos_y[neighborIdx];
+            float mass_j = masses[neighborIdx];
 
-            Vector2f r = pos_i - pos_j;
-            float distSqr = r.x * r.x + r.y * r.y;
+            float dx = pos_i_x - pos_j_x;
+            float dy = pos_i_y - pos_j_y;
+            float distSqr = dx * dx + dy * dy;
 
             if (distSqr < h2)
             {
@@ -180,14 +204,19 @@ namespace sph
 
         // Ensure minimum density
         density = std::max(density, 0.9f * restDensity);
-        particleSystem->setDensity(particleIndex, density);
+
+        // Direct array access for setting values
+        std::vector<float> &densities = particleSystem->getDensities();
+        std::vector<float> &pressures = particleSystem->getPressures();
+
+        densities[particleIndex] = density;
 
         float density_ratio = density / restDensity;
         // Basic EOS (Equation of State)
         float pressure_term = std::pow(density_ratio, gamma) - 1.0f;
         float pressure = (this->gasConstant * restDensity / gamma) * pressure_term;
         pressure = std::max(0.0f, pressure);
-        particleSystem->setPressure(particleIndex, pressure);
+        pressures[particleIndex] = pressure;
     }
 
     void SPHPhysics::computeForcesForParticle(ParticleSystem *particleSystem, size_t particleIndex)
@@ -198,42 +227,59 @@ namespace sph
         const float artificial_epsilon = 0.01f * h2;
         const float alpha = 1.0f;
 
-        Vector2f pressureAcceleration(0.0f, 0.0f);
-        Vector2f viscosityAcceleration(0.0f, 0.0f);
+        float pressureAccelX = 0.0f;
+        float pressureAccelY = 0.0f;
+        float viscosityAccelX = 0.0f;
+        float viscosityAccelY = 0.0f;
 
-        // Get particle properties
-        Vector2f pos_i = particleSystem->getPosition(particleIndex);
-        Vector2f vel_i = particleSystem->getVelocity(particleIndex);
-        float density_i = particleSystem->getDensity(particleIndex);
-        float pressure_i = particleSystem->getPressure(particleIndex);
+        // Direct array access - eliminate expensive getters
+        const std::vector<float> &pos_x = particleSystem->getPositionsX();
+        const std::vector<float> &pos_y = particleSystem->getPositionsY();
+        const std::vector<float> &vel_x = particleSystem->getVelocitiesX();
+        const std::vector<float> &vel_y = particleSystem->getVelocitiesY();
+        const std::vector<float> &densities = particleSystem->getDensities();
+        const std::vector<float> &pressures = particleSystem->getPressures();
+        const std::vector<float> &masses = particleSystem->getMasses();
+
+        float pos_i_x = pos_x[particleIndex];
+        float pos_i_y = pos_y[particleIndex];
+        float vel_i_x = vel_x[particleIndex];
+        float vel_i_y = vel_y[particleIndex];
+        float density_i = densities[particleIndex];
+        float pressure_i = pressures[particleIndex];
 
         // Make sure density isn't too close to zero before division
         if (density_i < EPS)
             density_i = EPS; // Safeguard
 
-        // Get neighbors
-        std::vector<size_t> neighbors = particleSystem->getGrid()->getNeighbors(pos_i.x, pos_i.y, h, particleSystem);
+        // Use cached neighbors for better performance
+        const std::vector<size_t> &neighbors = particleSystem->getCachedNeighbors(particleIndex);
 
-        // #pragma omp simd
-        for (size_t neighborIdx : neighbors)
+        // Vectorizable loop with direct array access
+        for (size_t j = 0; j < neighbors.size(); ++j)
         {
+            size_t neighborIdx = neighbors[j];
             if (particleIndex == neighborIdx)
                 continue;
 
-            // Get neighbor properties
-            Vector2f pos_j = particleSystem->getPosition(neighborIdx);
-            Vector2f vel_j = particleSystem->getVelocity(neighborIdx);
-            float density_j = particleSystem->getDensity(neighborIdx);
-            float pressure_j = particleSystem->getPressure(neighborIdx);
-            float mass_j = particleSystem->getMass(neighborIdx);
+            // Direct array access for neighbor properties
+            float pos_j_x = pos_x[neighborIdx];
+            float pos_j_y = pos_y[neighborIdx];
+            float vel_j_x = vel_x[neighborIdx];
+            float vel_j_y = vel_y[neighborIdx];
+            float density_j = densities[neighborIdx];
+            float pressure_j = pressures[neighborIdx];
+            float mass_j = masses[neighborIdx];
 
-            Vector2f r_ij = pos_i - pos_j; // Vector from j to i
-            float distSqr = r_ij.x * r_ij.x + r_ij.y * r_ij.y;
+            float r_ij_x = pos_i_x - pos_j_x; // Vector from j to i
+            float r_ij_y = pos_i_y - pos_j_y;
+            float distSqr = r_ij_x * r_ij_x + r_ij_y * r_ij_y;
 
             if (distSqr < h2 && distSqr > EPS) // Check within h and avoid self/coincident
             {
                 float dist = std::sqrt(distSqr);
-                Vector2f dir_ij = r_ij / dist; // Normalized direction from j to i
+                float dir_ij_x = r_ij_x / dist; // Normalized direction from j to i
+                float dir_ij_y = r_ij_y / dist;
 
                 // --- Pressure Acceleration Calculation ---
                 float pressureTerm = -(pressure_i / (density_i * density_i) +
@@ -241,12 +287,14 @@ namespace sph
 
                 float h_r = h - dist;
                 // Use Spiky gradient for pressure
-                Vector2f gradW_spiky = SPIKY_GRAD_COEFF * h_r * h_r * dir_ij;
-                pressureAcceleration += mass_j * pressureTerm * gradW_spiky;
+                float gradW_spiky = SPIKY_GRAD_COEFF * h_r * h_r;
+                pressureAccelX += mass_j * pressureTerm * gradW_spiky * dir_ij_x;
+                pressureAccelY += mass_j * pressureTerm * gradW_spiky * dir_ij_y;
 
                 // --- Monaghan Artificial Viscosity Acceleration ---
-                Vector2f vel_ij = vel_i - vel_j;                       // Relative velocity v_i - v_j
-                float v_dot_r = vel_ij.x * r_ij.x + vel_ij.y * r_ij.y; // v_ij dot r_ij
+                float vel_ij_x = vel_i_x - vel_j_x; // Relative velocity v_i - v_j
+                float vel_ij_y = vel_i_y - vel_j_y;
+                float v_dot_r = vel_ij_x * r_ij_x + vel_ij_y * r_ij_y; // v_ij dot r_ij
 
                 // Only apply viscosity if particles are approaching each other
                 if (v_dot_r < 0.0f)
@@ -266,13 +314,18 @@ namespace sph
                     float PI_ij = (-alpha * c_avg * mu_ij) / rho_avg;
 
                     // Viscosity Acceleration contribution
-                    viscosityAcceleration += -mass_j * PI_ij * gradW_spiky;
+                    viscosityAccelX += -mass_j * PI_ij * gradW_spiky * dir_ij_x;
+                    viscosityAccelY += -mass_j * PI_ij * gradW_spiky * dir_ij_y;
                 }
             }
         }
 
-        // Set total acceleration = Pressure Acceleration + Viscosity Acceleration + Gravity
-        particleSystem->setAcceleration(particleIndex, pressureAcceleration + viscosityAcceleration + gravity);
+        // Set total acceleration directly in arrays
+        std::vector<float> &accel_x = particleSystem->getAccelerationsX();
+        std::vector<float> &accel_y = particleSystem->getAccelerationsY();
+
+        accel_x[particleIndex] = pressureAccelX + viscosityAccelX + gravity.x;
+        accel_y[particleIndex] = pressureAccelY + viscosityAccelY + gravity.y;
     }
 
     void SPHPhysics::computeBoundaryForcesForParticle(ParticleSystem *particleSystem, size_t particleIndex, float width, float height)
@@ -284,89 +337,125 @@ namespace sph
         const float boundaryStiffness = 10000.0f;
         const float boundaryDecay = 2.0f;
 
-        Vector2f pos = particleSystem->getPosition(particleIndex);
-        Vector2f boundaryForce(0.0f, 0.0f);
+        // Direct array access
+        const std::vector<float> &pos_x = particleSystem->getPositionsX();
+        const std::vector<float> &pos_y = particleSystem->getPositionsY();
+
+        float pos_x_val = pos_x[particleIndex];
+        float pos_y_val = pos_y[particleIndex];
+
+        float boundaryForceX = 0.0f;
+        float boundaryForceY = 0.0f;
 
         // Left wall repulsion
-        if (pos.x < boundaryDistance)
+        if (pos_x_val < boundaryDistance)
         {
-            float dist = pos.x;
+            float dist = pos_x_val;
             float normalizedDist = std::min(dist / boundaryDistance, 1.0f);
             float forceMagnitude = boundaryStiffness * std::pow(1.0f - normalizedDist, boundaryDecay);
-            boundaryForce.x += forceMagnitude;
+            boundaryForceX += forceMagnitude;
         }
 
         // Right wall repulsion
-        if (pos.x > width - boundaryDistance)
+        if (pos_x_val > width - boundaryDistance)
         {
-            float dist = width - pos.x;
+            float dist = width - pos_x_val;
             float normalizedDist = std::min(dist / boundaryDistance, 1.0f);
             float forceMagnitude = boundaryStiffness * std::pow(1.0f - normalizedDist, boundaryDecay);
-            boundaryForce.x -= forceMagnitude;
+            boundaryForceX -= forceMagnitude;
         }
 
         // Top wall repulsion
-        if (pos.y < boundaryDistance)
+        if (pos_y_val < boundaryDistance)
         {
-            float dist = pos.y;
+            float dist = pos_y_val;
             float normalizedDist = std::min(dist / boundaryDistance, 1.0f);
             float forceMagnitude = boundaryStiffness * std::pow(1.0f - normalizedDist, boundaryDecay);
-            boundaryForce.y += forceMagnitude;
+            boundaryForceY += forceMagnitude;
         }
 
         // Bottom wall repulsion
-        if (pos.y > height - boundaryDistance)
+        if (pos_y_val > height - boundaryDistance)
         {
-            float dist = height - pos.y;
+            float dist = height - pos_y_val;
             float normalizedDist = std::min(dist / boundaryDistance, 1.0f);
             float forceMagnitude = boundaryStiffness * std::pow(1.0f - normalizedDist, boundaryDecay);
-            boundaryForce.y -= forceMagnitude;
+            boundaryForceY -= forceMagnitude;
         }
 
-        // Add boundary acceleration to existing acceleration
-        Vector2f currentAcc = particleSystem->getAcceleration(particleIndex);
-        Vector2f boundaryAcc = boundaryForce / particleSystem->getDensity(particleIndex);
-        particleSystem->setAcceleration(particleIndex, currentAcc + boundaryAcc);
+        // Add boundary acceleration to existing acceleration using direct array access
+        std::vector<float> &accel_x = particleSystem->getAccelerationsX();
+        std::vector<float> &accel_y = particleSystem->getAccelerationsY();
+        const std::vector<float> &densities = particleSystem->getDensities();
+
+        float boundaryAccelX = boundaryForceX / densities[particleIndex];
+        float boundaryAccelY = boundaryForceY / densities[particleIndex];
+
+        accel_x[particleIndex] += boundaryAccelX;
+        accel_y[particleIndex] += boundaryAccelY;
     }
 
     void SPHPhysics::integrateParticle(ParticleSystem *particleSystem, size_t particleIndex, float dt)
     {
-        Vector2f velocity = particleSystem->getVelocity(particleIndex) + particleSystem->getAcceleration(particleIndex) * dt;
-        particleSystem->setVelocity(particleIndex, velocity);
-        particleSystem->setPosition(particleIndex, particleSystem->getPosition(particleIndex) + velocity * dt);
+        // Direct array access for integration - avoid getters/setters
+        std::vector<float> &vel_x = particleSystem->getVelocitiesX();
+        std::vector<float> &vel_y = particleSystem->getVelocitiesY();
+        std::vector<float> &pos_x = particleSystem->getPositionsX();
+        std::vector<float> &pos_y = particleSystem->getPositionsY();
+        const std::vector<float> &accel_x = particleSystem->getAccelerationsX();
+        const std::vector<float> &accel_y = particleSystem->getAccelerationsY();
+
+        // Update velocity: v = v + a * dt
+        vel_x[particleIndex] += accel_x[particleIndex] * dt;
+        vel_y[particleIndex] += accel_y[particleIndex] * dt;
+
+        // Update position: p = p + v * dt
+        pos_x[particleIndex] += vel_x[particleIndex] * dt;
+        pos_y[particleIndex] += vel_y[particleIndex] * dt;
     }
 
     void SPHPhysics::resolveCollisionsForParticle(ParticleSystem *particleSystem, size_t particleIndex, float width, float height)
     {
         constexpr float PARTICLE_RADIUS = 5.0f;
 
-        Vector2f pos = particleSystem->getPosition(particleIndex);
-        Vector2f vel = particleSystem->getVelocity(particleIndex);
+        // Direct array access
+        std::vector<float> &pos_x = particleSystem->getPositionsX();
+        std::vector<float> &pos_y = particleSystem->getPositionsY();
+        std::vector<float> &vel_x = particleSystem->getVelocitiesX();
+        std::vector<float> &vel_y = particleSystem->getVelocitiesY();
+
+        float pos_x_val = pos_x[particleIndex];
+        float pos_y_val = pos_y[particleIndex];
+        float vel_x_val = vel_x[particleIndex];
+        float vel_y_val = vel_y[particleIndex];
 
         // Simple boundary conditions with damping - failsafe only
-        if (pos.x < PARTICLE_RADIUS)
+        if (pos_x_val < PARTICLE_RADIUS)
         {
-            pos.x = PARTICLE_RADIUS;
-            vel.x = -vel.x * boundaryDamping;
+            pos_x_val = PARTICLE_RADIUS;
+            vel_x_val = -vel_x_val * boundaryDamping;
         }
-        if (pos.x > width - PARTICLE_RADIUS)
+        if (pos_x_val > width - PARTICLE_RADIUS)
         {
-            pos.x = width - PARTICLE_RADIUS;
-            vel.x = -vel.x * boundaryDamping;
+            pos_x_val = width - PARTICLE_RADIUS;
+            vel_x_val = -vel_x_val * boundaryDamping;
         }
-        if (pos.y < PARTICLE_RADIUS)
+        if (pos_y_val < PARTICLE_RADIUS)
         {
-            pos.y = PARTICLE_RADIUS;
-            vel.y = -vel.y * boundaryDamping;
+            pos_y_val = PARTICLE_RADIUS;
+            vel_y_val = -vel_y_val * boundaryDamping;
         }
-        if (pos.y > height - PARTICLE_RADIUS)
+        if (pos_y_val > height - PARTICLE_RADIUS)
         {
-            pos.y = height - PARTICLE_RADIUS;
-            vel.y = -vel.y * boundaryDamping;
+            pos_y_val = height - PARTICLE_RADIUS;
+            vel_y_val = -vel_y_val * boundaryDamping;
         }
 
-        particleSystem->setPosition(particleIndex, pos);
-        particleSystem->setVelocity(particleIndex, vel);
+        // Update arrays directly
+        pos_x[particleIndex] = pos_x_val;
+        pos_y[particleIndex] = pos_y_val;
+        vel_x[particleIndex] = vel_x_val;
+        vel_y[particleIndex] = vel_y_val;
     }
 
     // Kernel functions

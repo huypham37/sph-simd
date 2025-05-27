@@ -163,75 +163,20 @@ namespace sph
 	void ParticleSystem::updateGrid()
 	{
 		grid->clear();
-		// Update grid using SoA data
-		for (size_t i = 0; i < numParticles; ++i)
+		// Update grid using direct SoA array access - much more cache-friendly
+		const float *pos_x = positionsX.data();
+		const float *pos_y = positionsY.data();
+
+		// Process in batches for better cache locality
+		constexpr size_t BATCH_SIZE = 64;
+		for (size_t batch = 0; batch < numParticles; batch += BATCH_SIZE)
 		{
-			// Create a temporary position for grid insertion
-			// The grid will need to be updated to work with indices instead of particle pointers
-			grid->insertParticleByIndex(i, positionsX[i], positionsY[i]);
+			size_t batch_end = std::min(batch + BATCH_SIZE, numParticles);
+			for (size_t i = batch; i < batch_end; ++i)
+			{
+				grid->insertParticleByIndex(i, pos_x[i], pos_y[i]);
+			}
 		}
-	}
-
-	// Helper methods for accessing particle data by index
-	Vector2f ParticleSystem::getPosition(size_t index) const
-	{
-		return Vector2f(positionsX[index], positionsY[index]);
-	}
-
-	Vector2f ParticleSystem::getVelocity(size_t index) const
-	{
-		return Vector2f(velocitiesX[index], velocitiesY[index]);
-	}
-
-	Vector2f ParticleSystem::getAcceleration(size_t index) const
-	{
-		return Vector2f(accelerationsX[index], accelerationsY[index]);
-	}
-
-	float ParticleSystem::getDensity(size_t index) const
-	{
-		return densities[index];
-	}
-
-	float ParticleSystem::getPressure(size_t index) const
-	{
-		return pressures[index];
-	}
-
-	float ParticleSystem::getMass(size_t index) const
-	{
-		return masses[index];
-	}
-
-	void ParticleSystem::setPosition(size_t index, const Vector2f &pos)
-	{
-		positionsX[index] = pos.x;
-		positionsY[index] = pos.y;
-#ifndef HEADLESS_MODE
-		shapes[index].setPosition(sf::Vector2f(pos.x, pos.y));
-#endif
-	}
-
-	void ParticleSystem::setVelocity(size_t index, const Vector2f &vel)
-	{
-		velocitiesX[index] = vel.x;
-		velocitiesY[index] = vel.y;
-	}
-
-	void ParticleSystem::setAcceleration(size_t index, const Vector2f &acc)
-	{
-		accelerationsX[index] = acc.x;
-		accelerationsY[index] = acc.y;
-	}
-
-	void ParticleSystem::setDensity(size_t index, float density)
-	{
-		densities[index] = density;
-	}
-
-	void ParticleSystem::setPressure(size_t index, float pressure)
-	{
-		pressures[index] = pressure;
 	}
 
 	const std::vector<size_t> &ParticleSystem::getCachedNeighbors(size_t index) const
@@ -247,9 +192,10 @@ namespace sph
 #ifndef HEADLESS_MODE
 	void ParticleSystem::updateParticleVisuals(size_t index)
 	{
-		// Update particle color based on velocity
-		sf::Vector2f velocity = getVelocity(index);
-		float speed = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+		// Direct array access instead of expensive getters
+		float vel_x = velocitiesX[index];
+		float vel_y = velocitiesY[index];
+		float speed = std::sqrt(vel_x * vel_x + vel_y * vel_y);
 
 		// Color based on speed
 		float normalizedSpeed = std::min(speed / 100.0f, 1.0f);
@@ -263,10 +209,37 @@ namespace sph
 
 	void ParticleSystem::updateAllParticleVisuals()
 	{
-#pragma omp simd
-		for (size_t i = 0; i < numParticles; ++i)
+		// Reduce visual update frequency - only update every 4th frame
+		static int visualFrameCounter = 0;
+		if (++visualFrameCounter % 4 != 0)
 		{
-			updateParticleVisuals(i);
+			return; // Skip visual updates 3 out of 4 frames
+		}
+
+		// Use direct array access for better SIMD performance
+		const float *vel_x = velocitiesX.data();
+		const float *vel_y = velocitiesY.data();
+		const float *pos_x = positionsX.data();
+		const float *pos_y = positionsY.data();
+
+		// Process in batches for better cache locality
+		constexpr size_t BATCH_SIZE = 32; // Smaller batch for visual updates
+		for (size_t batch = 0; batch < numParticles; batch += BATCH_SIZE)
+		{
+			size_t batch_end = std::min(batch + BATCH_SIZE, numParticles);
+
+			// Vectorizable loop with direct array access
+			for (size_t i = batch; i < batch_end; ++i)
+			{
+				float speed = std::sqrt(vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]);
+				float normalizedSpeed = std::min(speed / 100.0f, 1.0f);
+				std::uint8_t red = static_cast<std::uint8_t>(normalizedSpeed * 255);
+				std::uint8_t blue = static_cast<std::uint8_t>((1.0f - normalizedSpeed) * 255);
+
+				sf::Color currentColor(red, 120, blue, 220);
+				shapes[i].setFillColor(currentColor);
+				shapes[i].setPosition(sf::Vector2f(pos_x[i], pos_y[i]));
+			}
 		}
 	}
 #endif

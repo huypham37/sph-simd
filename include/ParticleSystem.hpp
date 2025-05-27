@@ -112,19 +112,26 @@ namespace sph
 		std::vector<float> &getPressures() { return pressures; }
 		std::vector<float> &getMasses() { return masses; }
 
-		// Helper methods for getting particle data by index
-		Vector2f getPosition(size_t index) const;
-		Vector2f getVelocity(size_t index) const;
-		Vector2f getAcceleration(size_t index) const;
-		float getDensity(size_t index) const;
-		float getPressure(size_t index) const;
-		float getMass(size_t index) const;
+		// Bulk data access methods for better SIMD performance
+		float *getPositionsXData() { return positionsX.data(); }
+		float *getPositionsYData() { return positionsY.data(); }
+		float *getVelocitiesXData() { return velocitiesX.data(); }
+		float *getVelocitiesYData() { return velocitiesY.data(); }
+		float *getAccelerationsXData() { return accelerationsX.data(); }
+		float *getAccelerationsYData() { return accelerationsY.data(); }
+		float *getDensitiesData() { return densities.data(); }
+		float *getPressuresData() { return pressures.data(); }
+		float *getMassesData() { return masses.data(); }
 
-		void setPosition(size_t index, const Vector2f &pos);
-		void setVelocity(size_t index, const Vector2f &vel);
-		void setAcceleration(size_t index, const Vector2f &acc);
-		void setDensity(size_t index, float density);
-		void setPressure(size_t index, float pressure);
+		const float *getPositionsXData() const { return positionsX.data(); }
+		const float *getPositionsYData() const { return positionsY.data(); }
+		const float *getVelocitiesXData() const { return velocitiesX.data(); }
+		const float *getVelocitiesYData() const { return velocitiesY.data(); }
+		const float *getAccelerationsXData() const { return accelerationsX.data(); }
+		const float *getAccelerationsYData() const { return accelerationsY.data(); }
+		const float *getDensitiesData() const { return densities.data(); }
+		const float *getPressuresData() const { return pressures.data(); }
+		const float *getMassesData() const { return masses.data(); }
 
 		// Cached neighbors accessors
 		const std::vector<size_t> &getCachedNeighbors(size_t index) const;

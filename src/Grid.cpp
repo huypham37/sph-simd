@@ -22,10 +22,13 @@ namespace sph
   {
     this->clear();
 
+    // Use direct array access instead of getPosition for better performance
+    const float *pos_x = particleSystem->getPositionsXData();
+    const float *pos_y = particleSystem->getPositionsYData();
+
     for (size_t i = 0; i < particleSystem->getParticleCount(); ++i)
     {
-      Vector2f pos = particleSystem->getPosition(i);
-      insertParticleByIndex(i, pos.x, pos.y);
+      insertParticleByIndex(i, pos_x[i], pos_y[i]);
     }
   }
 
@@ -57,12 +60,14 @@ namespace sph
         auto it = cells.find(cellIdx);
         if (it != cells.end())
         {
-          // Filter particles by actual distance
+          // Filter particles by actual distance - use direct array access
+          const float *pos_x = particleSystem->getPositionsXData();
+          const float *pos_y = particleSystem->getPositionsYData();
+
           for (size_t particleIndex : it->second)
           {
-            Vector2f particlePos = particleSystem->getPosition(particleIndex);
-            float dx = x - particlePos.x;
-            float dy = y - particlePos.y;
+            float dx = x - pos_x[particleIndex];
+            float dy = y - pos_y[particleIndex];
             float distSquared = dx * dx + dy * dy;
 
             if (distSquared <= radiusSquared)
@@ -79,8 +84,10 @@ namespace sph
 
   std::vector<size_t> Grid::getNeighborsByIndex(size_t particleIndex, float radius, const ParticleSystem *particleSystem)
   {
-    Vector2f pos = particleSystem->getPosition(particleIndex);
-    return getNeighbors(pos.x, pos.y, radius, particleSystem);
+    // Use direct array access instead of getPosition
+    const float *pos_x = particleSystem->getPositionsXData();
+    const float *pos_y = particleSystem->getPositionsYData();
+    return getNeighbors(pos_x[particleIndex], pos_y[particleIndex], radius, particleSystem);
   }
 
   int Grid::getCellIndex(float x, float y) const
